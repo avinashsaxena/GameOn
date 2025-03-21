@@ -1,0 +1,6 @@
+@RajyogGame_HostAddress = http://localhost:5224
+
+GET {{RajyogGame_HostAddress}}/UserController/
+Accept: application/json
+
+###
