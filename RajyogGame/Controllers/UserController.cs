@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Data;
+using Microsoft.AspNetCore.Mvc;
 using Model;
 using Services;
 
@@ -7,59 +8,55 @@ namespace RajyogGame.Controllers
 
     [ApiController]
     [Route("api/users")]
-    public class UserController : ControllerBase
+    public class UserController(IUserRepository userRepository, ILogger<UserController> logger) : ControllerBase
     {
-        private readonly IUserService _userService;
-        private readonly ILogger<UserController> _logger;
-
-        public UserController(IUserService userService, ILogger<UserController> logger)
-        {
-            _userService = userService;
-            _logger = logger;
-        }
+        private readonly IUserRepository _userRepository = userRepository;
+        private readonly ILogger<UserController> _logger = logger;
 
         [HttpGet]
         public async Task<IActionResult> GetUsers()
         {
-            var users = await _userService.GetUsers();
-            return Ok(users);
+            _logger.LogInformation("Fetching all users");
+            return Ok(await _userRepository.GetAllUsers());
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUser(int id)
         {
-            var user = await _userService.GetUser(id);
+            _logger.LogInformation($"Fetching user with ID: {id}");
+
+            var user = await _userRepository.GetUserById(id);
             if (user == null)
-                return NotFound("User not found.");
+            {
+                _logger.LogWarning($"User with ID {id} not found.");
+                return NotFound($"User with ID {id} not found.");
+            }
+
             return Ok(user);
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateUser([FromBody] User user)
+        public async Task<IActionResult> AddUser([FromBody] User user)
         {
-            if (user == null)
-                return BadRequest("Invalid user data.");
-
-            await _userService.CreateUser(user);
-            return CreatedAtAction(nameof(GetUser), new { id = user.Uid }, user);
+            _logger.LogInformation("Adding a new user");
+            await _userRepository.AddUser(user);
+            return Ok(user);
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(int id, [FromBody] User user)
+        [HttpPut]
+        public async Task<IActionResult> UpdateUser([FromBody] User user)
         {
-            if (user == null || id != user.Uid)
-                return BadRequest("Invalid request.");
-
-            await _userService.UpdateUser(user);
-            return NoContent();
+            _logger.LogInformation($"Updating user with ID: {user.Uid}");
+            await _userRepository.UpdateUser(user);
+            return Ok(user);
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            await _userService.RemoveUser(id);
-            return NoContent();
+            _logger.LogInformation($"Deleting user with ID: {id}");
+            await _userRepository.DeleteUser(id);
+            return Ok();
         }
     }
-
 }

@@ -19,16 +19,10 @@ namespace Services
         Task RemoveUser(int id);
     }
 
-    public class UserService : IUserService
+    public class UserService(IUserRepository userRepository, ILogger<UserService> logger) : IUserService
     {
-        private readonly IUserRepository _userRepository;
-        private readonly ILogger<UserService> _logger;
-
-        public UserService(IUserRepository userRepository, ILogger<UserService> logger)
-        {
-            _userRepository = userRepository;
-            _logger = logger;
-        }
+        private readonly IUserRepository _userRepository = userRepository;
+        private readonly ILogger<UserService> _logger = logger;
 
         public async Task<IEnumerable<User>> GetUsers() => await _userRepository.GetAllUsers();
         public async Task<User> GetUser(int id) => await _userRepository.GetUserById(id);

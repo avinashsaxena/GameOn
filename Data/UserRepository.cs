@@ -17,13 +17,9 @@
         Task DeleteUser(int id);
     }
 
-    public class UserRepository : IUserRepository
+    public class UserRepository(IConfiguration configuration) : IUserRepository
     {
-        private readonly string _connectionString;
-        public UserRepository(IConfiguration configuration)
-        {
-            _connectionString = configuration.GetConnectionString("DefaultConnection");
-        }
+        private readonly string _connectionString = configuration.GetConnectionString("DefaultConnection");
 
         private IDbConnection Connection => new SqlConnection(_connectionString);
 
